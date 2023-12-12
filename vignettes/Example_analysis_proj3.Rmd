@@ -41,7 +41,7 @@ Horror movies has been a popular movie genre since its conception. There are man
 3.  Is there a correlation between a movie's budget and its revenue?
 4.  What are the most common genres combined with horror?
 
-The intended audience are those interested in horror movies dating back to the 1950s and the TA/Instructors for Biostats-777.
+The intended audience are those interested in horror movies dating back to the 1950s and the TA/Instructors for Biostats-777 course.
 
 ### Data Source
 
