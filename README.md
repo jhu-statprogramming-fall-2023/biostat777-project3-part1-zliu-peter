@@ -1,15 +1,8 @@
----
-editor_options: 
-  markdown: 
-    wrap: 150
----
-
 # rio: A Swiss-Army Knife for Data I/O <img src="man/figures/logo.png" align="right" height="139"/>
 
 <!-- badges: start -->
 
-[![CRAN
-Version](https://www.r-pkg.org/badges/version/rio)](https://cran.r-project.org/package=rio)
+[![CRAN Version](https://www.r-pkg.org/badges/version/rio)](https://cran.r-project.org/package=rio)
 ![Downloads](https://cranlogs.r-pkg.org/badges/rio) <!-- badges: end -->
 
 ## Added Parts for Project 3 Part 1
@@ -17,10 +10,10 @@ Version](https://www.r-pkg.org/badges/version/rio)](https://cran.r-project.org/p
 -   Url to the original package: <https://github.com/gesistsa/rio>
 
 -   Url to the deployed website:
-<https://jhu-statprogramming-fall-2023.github.io/biostat777-project3-part1-zliu-peter>
+    <https://jhu-statprogramming-fall-2023.github.io/biostat777-project3-part1-zliu-peter>
 
 -   Url to the deployed website github page:
-<https://github.com/jhu-statprogramming-fall-2023/biostat777-project3-part1-zliu-peter>
+    <https://github.com/jhu-statprogramming-fall-2023/biostat777-project3-part1-zliu-peter>
 
 -   Lists of things I customized for the website:
 
@@ -32,35 +25,40 @@ Version](https://www.r-pkg.org/badges/version/rio)](https://cran.r-project.org/p
     -   Reordered the navigation bar
     -   Set navigation bar background
 
-- Functions from this package that I used in example analysis:
-    - import()
-    - export()
+-   Functions from this package that I used in example analysis:
+
+    -   import()
+    -   export()
 
 -   DISCLAIMER:
 
-    - The forked repository already contained a lot of files that constitute this website. My added contribution is the "Example analysis" in the Articles tab and the deployment of pkgdown website, which is the requirement of biostats777 Project 3. I also added this part for the README.md file, in accord with the requirement. 
-    - The title of the package is above (already included by original authors)
-    - The original author of the package are listed to the right: **Developers**. Zixing "Peter" Liu made and customized the website (with a lot of files already created in the original github repo), and added an example analysis in the **Article** section (title
-**"Example analysis"**). This is for project 3 assignment of Biostats777. 
-    - The goal of the package is described below in the **Overview** section. 
-    - A list of exported functions and descriptions are included in the **Reference** section (already included by original authors). 
-    - A basic example with one of the functions are included below in **Usage** (already included by original authors). I also demonstrated in the **Example analysis**.
+    -   The forked repository already contained a lot of files that constitute this website. My
+        added contribution is the "Example analysis" in the Articles tab and the deployment of
+        pkgdown website, which is the requirement of biostats777 Project 3. I also added this part
+        for the README.md file, in accord with the requirement.
+    -   The title of the package is above (already included by original authors)
+    -   The original author of the package are listed to the right: **Developers**. Zixing "Peter"
+        Liu made and customized the website (with a lot of files already created in the original
+        github repo), and added an example analysis in the **Article** section (title **"Example
+        analysis"**). This is for project 3 assignment of Biostats777.
+    -   The goal of the package is described below in the **Overview** section.
+    -   A list of exported functions and descriptions are included in the **Reference** section
+        (already included by original authors).
+    -   A basic example with one of the functions are included below in **Usage** (already included
+        by original authors). I also demonstrated in the **Example analysis**.
 
 ## Overview
 
-The aim of **rio** is to make data file I/O in R as easy as possible by
-implementing two main functions in Swiss-army knife style:
+The aim of **rio** is to make data file I/O in R as easy as possible by implementing two main
+functions in Swiss-army knife style:
 
--   `import()` provides a painless data import experience by
-    automatically choosing the appropriate import/read function based on
-    file extension (or a specified `format` argument)
--   `export()` provides the same painless file recognition for data
-    export/write functionality
+-   `import()` provides a painless data import experience by automatically choosing the appropriate
+    import/read function based on file extension (or a specified `format` argument)
+-   `export()` provides the same painless file recognition for data export/write functionality
 
 ## Installation
 
-The package is available on
-[CRAN](https://cran.r-project.org/package=rio) and can be installed
+The package is available on [CRAN](https://cran.r-project.org/package=rio) and can be installed
 directly in R using `install.packages()`.
 
 ``` r
@@ -76,8 +74,7 @@ if (!require("remotes")){
 remotes::install_github("gesistsa/rio")
 ```
 
-Optional: Installation of additional formats (see below: **Supported
-file formats**)
+Optional: Installation of additional formats (see below: **Supported file formats**)
 
 ``` r
 library(rio)
@@ -86,9 +83,8 @@ install_formats()
 
 ## Usage
 
-Because **rio** is meant to streamline data I/O, the package is
-extremely easy to use. Here are some examples of reading, writing, and
-converting data files.
+Because **rio** is meant to streamline data I/O, the package is extremely easy to use. Here are some
+examples of reading, writing, and converting data files.
 
 ### Import
 
@@ -131,9 +127,8 @@ import("starwars.csv")
 ## 10     Obi-Wan Kenobi  Corellia   Human
 ```
 
-Note: Because of inconsistencies across underlying packages, the
-data.frame returned by `import` might vary slightly (in variable classes
-and attributes) depending on file type.
+Note: Because of inconsistencies across underlying packages, the data.frame returned by `import`
+might vary slightly (in variable classes and attributes) depending on file type.
 
 ### Export
 
@@ -145,16 +140,15 @@ export(mtcars, "mtcars.rds") # R serialized
 export(mtcars, "mtcars.sav") # SPSS
 ```
 
-A particularly useful feature of rio is the ability to import from and
-export to compressed (e.g., zip) directories, saving users the extra
-step of compressing a large exported file, e.g.:
+A particularly useful feature of rio is the ability to import from and export to compressed (e.g.,
+zip) directories, saving users the extra step of compressing a large exported file, e.g.:
 
 ``` r
 export(mtcars, "mtcars.tsv.zip")
 ```
 
-`export()` can also write multiple data frames to respective sheets of
-an Excel workbook or an HTML file:
+`export()` can also write multiple data frames to respective sheets of an Excel workbook or an HTML
+file:
 
 ``` r
 export(list(mtcars = mtcars, iris = iris), file = "mtcars.xlsx")
@@ -162,10 +156,9 @@ export(list(mtcars = mtcars, iris = iris), file = "mtcars.xlsx")
 
 ## Supported file formats
 
-**rio** supports a wide range of file formats. To keep the package slim,
-several formats are supported via "Suggests" packages, which are not
-installed (or loaded) by default. To ensure rio is fully functional,
-install these packages the first time you use **rio** via:
+**rio** supports a wide range of file formats. To keep the package slim, several formats are
+supported via "Suggests" packages, which are not installed (or loaded) by default. To ensure rio is
+fully functional, install these packages the first time you use **rio** via:
 
 ``` r
 install_formats()
@@ -174,7 +167,7 @@ install_formats()
 The full list of supported formats is below:
 
 | Name                                | Extensions / "format" | Import Package | Export Package | Type    | Note                    |
-|:--------------|:-----------|:-----------|:-----------|:-----------|:-----------|
+|:----------------|:----------------|:----------------|:----------------|:----------------|:----------------|
 | Archive files (handled by tar)      | bzip2 / xz / tar      | utils          | utils          | Default |                         |
 | Gzip files                          | gz / gzip             | base           | base           | Default |                         |
 | Zip files                           | zip                   | utils          | utils          | Default |                         |
@@ -219,28 +212,25 @@ The full list of supported formats is below:
 | Shallow XML documents               | xml                   | xml2           | xml2           | Suggest |                         |
 | YAML                                | yaml / yml            | yaml           | yaml           | Suggest |                         |
 
-Additionally, any format that is not supported by **rio** but that has a
-known R implementation will produce an informative error message
-pointing to a package and import or export function. Unrecognized
-formats will yield a simple "Unrecognized file format" error.
+Additionally, any format that is not supported by **rio** but that has a known R implementation will
+produce an informative error message pointing to a package and import or export function.
+Unrecognized formats will yield a simple "Unrecognized file format" error.
 
 ## Other functions
 
 ### Convert
 
-The `convert()` function links `import()` and `export()` by constructing
-a dataframe from the imported file and immediately writing it back to
-disk. `convert()` invisibly returns the file name of the exported file,
-so that it can be used to programmatically access the new file.
+The `convert()` function links `import()` and `export()` by constructing a dataframe from the
+imported file and immediately writing it back to disk. `convert()` invisibly returns the file name
+of the exported file, so that it can be used to programmatically access the new file.
 
 ``` r
 convert("mtcars.sav", "mtcars.dta")
 ```
 
-It is also possible to use **rio** on the command-line by calling
-`Rscript` with the `-e` (expression) argument. For example, to convert a
-file from Stata (.dta) to comma-separated values (.csv), simply do the
-following:
+It is also possible to use **rio** on the command-line by calling `Rscript` with the `-e`
+(expression) argument. For example, to convert a file from Stata (.dta) to comma-separated values
+(.csv), simply do the following:
 
 ```         
 Rscript -e "rio::convert('iris.dta', 'iris.csv')"
@@ -248,9 +238,8 @@ Rscript -e "rio::convert('iris.dta', 'iris.csv')"
 
 ### \*\_list
 
-`import_list()` allows users to import a list of data frames from a
-multi-object file (such as an Excel workbook, .Rdata file, zip
-directory, or HTML file):
+`import_list()` allows users to import a list of data frames from a multi-object file (such as an
+Excel workbook, .Rdata file, zip directory, or HTML file):
 
 ``` r
 str(m <- import_list("mtcars.xlsx"))
@@ -278,8 +267,7 @@ str(m <- import_list("mtcars.xlsx"))
 ##   ..$ Species     : chr [1:150] "setosa" "setosa" "setosa" "setosa" ...
 ```
 
-`export_list()` makes it easy to export a list of (possibly named) data
-frames to multiple files:
+`export_list()` makes it easy to export a list of (possibly named) data frames to multiple files:
 
 ``` r
 export_list(m, "%s.tsv")
@@ -294,21 +282,17 @@ c("mtcars.tsv", "iris.tsv") %in% dir()
 
 ### GUIs
 
--   [**rioweb**](https://github.com/lbraglia/rioweb) that provides
-    access to the file conversion features of rio.
--   [**GREA**](https://github.com/Stan125/GREA/) is an RStudio add-in
-    that provides an interactive interface for reading in data using
-    rio.
+-   [**rioweb**](https://github.com/lbraglia/rioweb) that provides access to the file conversion
+    features of rio.
+-   [**GREA**](https://github.com/Stan125/GREA/) is an RStudio add-in that provides an interactive
+    interface for reading in data using rio.
 
 ### Similar packages
 
--   [**reader**](https://cran.r-project.org/package=reader) handles
-    certain text formats and R binary files
--   [**io**](https://cran.r-project.org/package=io) offers a set of
-    custom formats
--   [**ImportExport**](https://cran.r-project.org/package=ImportExport)
-    focuses on select binary formats (Excel, SPSS, and Access files) and
-    provides a Shiny interface.
--   [**SchemaOnRead**](https://cran.r-project.org/package=SchemaOnRead)
-    iterates through a large number of possible import methods until one
-    works successfully
+-   [**reader**](https://cran.r-project.org/package=reader) handles certain text formats and R
+    binary files
+-   [**io**](https://cran.r-project.org/package=io) offers a set of custom formats
+-   [**ImportExport**](https://cran.r-project.org/package=ImportExport) focuses on select binary
+    formats (Excel, SPSS, and Access files) and provides a Shiny interface.
+-   [**SchemaOnRead**](https://cran.r-project.org/package=SchemaOnRead) iterates through a large
+    number of possible import methods until one works successfully
