@@ -16,8 +16,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, message=FALSE, warning=FALSE}
 library(rio)
-#library(plotly)
-#for some reason plotly does not work when building github pages
+library(plotly)
 library(tidyverse)
 library(magrittr)
 library(lubridate)
@@ -177,19 +176,17 @@ highlight_titles <- top_movies$title
 # Indicate top 10 popular movies from above
 movies_Q3 <- movies %>%
     dplyr::mutate(Popularity = ifelse(title %in% highlight_titles, "Top 10", "Others")) %>%
-    dplyr::arrange(Popularity)
+    dplyr::arrange(desc(Popularity))
 
 # plotting
 budget_revenue_plot <- movies_Q3 %>%
     ggplot(aes(x = budget, y = revenue)) +
-    geom_point(aes(fill=Popularity, color=Popularity, alpha=Popularity), pch=21, size=2.5) +
+    geom_point(aes(fill=Popularity, color=Popularity, alpha=Popularity, text = paste("Title:", title, "<br>Budget:", budget, "<br>Revenue:", revenue)), pch=21, size=2) +
     scale_y_log10() +
     scale_x_log10() +
     geom_smooth(method = "lm", se = FALSE, color = "black") +
     labs(x = "Budget (in USD)", y = "Revenue (in USD)",
-         title = "Budget vs Revenue of Horror Movies",
-         subtitle = "Higher budget seems roughly correlated with higher revenue.",
-         caption = "log10-scaled x, y axis.") +
+         title = "Budget vs Revenue of Horror Movies", caption = "Log-scaled on both x and y.") +
     theme_classic()+
     theme(panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
@@ -202,49 +199,20 @@ budget_revenue_plot <- movies_Q3 %>%
           legend.title = element_blank())
 
 budget_revenue_plot <- budget_revenue_plot +
-    scale_color_manual(values = c(`Top 10` = "red", "Others" = "grey70")) +
-    scale_fill_manual(values = c(`Top 10` = "red", "Others" = NA)) +
-    scale_alpha_manual(values = c(`Top 10` = 1, "Others" = 0.3))
-
-budget_revenue_plot
+    scale_color_manual(values = c(`Top 10` = "red", "Others" = "lightblue")) +
+    scale_fill_manual(values = c(`Top 10` = "red", "Others" = "lightblue")) +
+    scale_alpha_manual(values = c(`Top 10` = 1, "Others" = 0.2))
 
 
-# # plotting: original plan was to use plotly. It worked locally but for some reasons cannot work with github pages.
-# budget_revenue_plot <- movies_Q3 %>%
-#     ggplot(aes(x = budget, y = revenue)) +
-#     geom_point(aes(fill=Popularity, color=Popularity, alpha=Popularity, text = paste("Title:", title, "<br>Budget:", budget, "<br>Revenue:", revenue)), pch=21, size=2) +
-#     scale_y_log10() +
-#     scale_x_log10() +
-#     geom_smooth(method = "lm", se = FALSE, color = "black") +
-#     labs(x = "Budget (in USD)", y = "Revenue (in USD)",
-#          title = "Budget vs Revenue of Horror Movies", caption = "Log-scaled on both x and y.") +
-#     theme_classic()+
-#     theme(panel.grid.major = element_blank(),
-#           panel.grid.minor = element_blank(),
-#           legend.text = element_text(size=12.5),
-#           axis.text.x = element_text(size=16, color="black"),
-#           axis.text.y = element_text(size=16, color="black"),
-#           axis.title.x = element_text(size=18, color="black"),
-#           axis.title.y = element_text(size=18, color="black"),
-#           legend.background = element_rect(fill = "white", color = "white"),
-#           legend.title = element_blank())
-# 
-# budget_revenue_plot <- budget_revenue_plot +
-#     scale_color_manual(values = c(`Top 10` = "red", "Others" = "grey95")) +
-#     scale_fill_manual(values = c(`Top 10` = "red", "Others" = NA)) +
-#     scale_alpha_manual(values = c(`Top 10` = 1, "Others" = 0.2))
-# 
-
-
-# ggplotly(budget_revenue_plot, tooltip = "text") %>%
-#     layout(annotations=list(x=0, y=1, text="Higher budget seems roughly correlated with higher revenue.", showarrow = F, xref='paper', yref='paper', xanchor="left", yanchor="auto")) %>%
-#     layout(annotations=list(x=1,y=0, text="Caption: log10-scaled x, y axis.",
-#       showarrow = F, xref='paper', yref='paper',
-#       xanchor='right', yanchor='auto', xshift=0, yshift=0,
-#       font=list(size=11, color="black")))
+ggplotly(budget_revenue_plot, tooltip = "text") %>%
+    layout(annotations=list(x=0, y=1, text="Higher budget seems roughly correlated with higher revenue.", showarrow = F, xref='paper', yref='paper', xanchor="left", yanchor="auto")) %>%
+    layout(annotations=list(x=1,y=0, text="Caption: log10-scaled x, y axis.",
+      showarrow = F, xref='paper', yref='paper',
+      xanchor='right', yanchor='auto', xshift=0, yshift=0,
+      font=list(size=11, color="black")))
 ```
 
-We can see that higher budget seems to be associated with higher revenue, though the exact relationship needs to be further investigated. We also see that most of the top 10 popular movies are those high in both production cost and revenue. This suggests that higher revenue might be correlated with higher popularity.
+We can see that higher budget seems to be associated with higher revenue, though the exact relationship needs to be further investigated. We also see that the top 10 popular movies are those high in both production cost and revenue. This suggests that higher revenue might be correlated with higher popularity.
 
 **A quick plot of popularity vs. revenue:**
 
