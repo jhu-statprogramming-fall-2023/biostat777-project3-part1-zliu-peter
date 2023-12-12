@@ -1,0 +1,177 @@
+---
+output: github_document
+---
+
+# rio: A Swiss-Army Knife for Data I/O <img src="man/figures/logo.png" align="right" height="139"/>
+
+<!-- badges: start -->
+[![CRAN Version](https://www.r-pkg.org/badges/version/rio)](https://cran.r-project.org/package=rio)
+![Downloads](https://cranlogs.r-pkg.org/badges/rio)
+<!-- badges: end -->
+
+## Overview
+
+The aim of **rio** is to make data file I/O in R as easy as possible by implementing two main functions in Swiss-army knife style:
+
+ - `import()` provides a painless data import experience by automatically choosing the appropriate import/read function based on file extension (or a specified `format` argument)
+ - `export()` provides the same painless file recognition for data export/write functionality
+
+## Installation
+
+The package is available on [CRAN](https://cran.r-project.org/package=rio) and can be installed directly in R using `install.packages()`.
+
+```R
+install.packages("rio")
+```
+
+The latest development version on GitHub can be installed using:
+
+```R
+if (!require("remotes")){
+    install.packages("remotes")
+}
+remotes::install_github("gesistsa/rio")
+```
+
+Optional: Installation of additional formats (see below: **Supported file formats**)
+
+```R
+library(rio)
+install_formats()
+```
+
+## Usage
+
+Because **rio** is meant to streamline data I/O, the package is extremely easy to use. Here are some examples of reading, writing, and converting data files.
+
+### Import
+
+Importing data is handled with one function, `import()`:
+
+```{r import1}
+library("rio")
+import("starwars.xlsx")
+```
+
+```{r import2}
+import("starwars.csv")
+```
+
+Note: Because of inconsistencies across underlying packages, the data.frame returned by `import` might vary slightly (in variable classes and attributes) depending on file type.
+
+### Export
+
+Exporting data is handled with one function, `export()`:
+
+```{r exports}
+export(mtcars, "mtcars.csv") # comma-separated values
+export(mtcars, "mtcars.rds") # R serialized
+export(mtcars, "mtcars.sav") # SPSS
+```
+
+A particularly useful feature of rio is the ability to import from and export to compressed (e.g., zip) directories, saving users the extra step of compressing a large exported file, e.g.:
+
+```{r export_zip}
+export(mtcars, "mtcars.tsv.zip")
+```
+
+`export()` can also write multiple data frames to respective sheets of an Excel workbook or an HTML file:
+
+```{r export_a_list}
+export(list(mtcars = mtcars, iris = iris), file = "mtcars.xlsx")
+```
+
+## Supported file formats
+
+**rio** supports a wide range of file formats. To keep the package slim, several formats are supported via "Suggests" packages, which are not installed (or loaded) by default. To ensure rio is fully functional, install these packages the first time you use **rio** via:
+
+```R
+install_formats()
+```
+
+The full list of supported formats is below:
+
+```{r, include = FALSE}
+suppressPackageStartupMessages(library(data.table))
+```
+
+```{r featuretable, echo = FALSE}
+rf <- data.table(rio:::rio_formats)[!input %in% c(",", ";", "|", "\\t") & type %in% c("import", "suggest", "archive"),]
+short_rf <- rf[, paste(input, collapse = " / "), by = format_name]
+type_rf <- unique(rf[,c("format_name", "type", "import_function", "export_function", "note")])
+
+feature_table <- short_rf[type_rf, on = .(format_name)]
+
+colnames(feature_table)[2] <- "signature"
+
+setorder(feature_table, "type", "format_name")
+feature_table$import_function <- stringi::stri_extract_first(feature_table$import_function, regex = "[a-zA-Z0-9\\.]+")
+feature_table$import_function[is.na(feature_table$import_function)] <- ""
+feature_table$export_function <- stringi::stri_extract_first(feature_table$export_function, regex = "[a-zA-Z0-9\\.]+")
+feature_table$export_function[is.na(feature_table$export_function)] <- ""
+
+feature_table$type <- ifelse(feature_table$type %in% c("suggest"), "Suggest", "Default")
+feature_table <- feature_table[,c("format_name", "signature", "import_function", "export_function", "type", "note")]
+
+colnames(feature_table) <- c("Name", "Extensions / \"format\"", "Import Package", "Export Package", "Type", "Note")
+
+knitr::kable(feature_table)
+```
+
+Additionally, any format that is not supported by **rio** but that has a known R implementation will produce an informative error message pointing to a package and import or export function. Unrecognized formats will yield a simple "Unrecognized file format" error.
+
+## Other functions
+
+### Convert
+
+The `convert()` function links `import()` and `export()` by constructing a dataframe from the imported file and immediately writing it back to disk. `convert()` invisibly returns the file name of the exported file, so that it can be used to programmatically access the new file.
+
+```{r convert}
+convert("mtcars.sav", "mtcars.dta")
+```
+
+It is also possible to use **rio** on the command-line by calling `Rscript` with the `-e` (expression) argument. For example, to convert a file from Stata (.dta) to comma-separated values (.csv), simply do the following:
+
+```
+Rscript -e "rio::convert('iris.dta', 'iris.csv')"
+```
+
+### *_list
+
+`import_list()` allows users to import a list of data frames from a multi-object file (such as an Excel workbook, .Rdata file, zip directory, or HTML file):
+
+```{r import_list}
+str(m <- import_list("mtcars.xlsx"))
+```
+
+`export_list()` makes it easy to export a list of (possibly named) data frames to multiple files:
+
+```{r export_list}
+export_list(m, "%s.tsv")
+c("mtcars.tsv", "iris.tsv") %in% dir()
+```
+
+```{r cleanup, echo=FALSE, results="hide"}
+unlink("mtcars.csv")
+unlink("mtcars.dta")
+unlink("mtcars.sav")
+unlink("mtcars.rds")
+unlink("mtcars.xlsx")
+unlink("mtcars.tsv.zip")
+unlink("mtcars.tsv")
+unlink("iris.tsv")
+```
+
+## Other projects
+
+### GUIs
+
+* [**rioweb**](https://github.com/lbraglia/rioweb) that provides access to the file conversion features of rio.
+* [**GREA**](https://github.com/Stan125/GREA/) is an RStudio add-in that provides an interactive interface for reading in data using rio.
+
+### Similar packages
+
+* [**reader**](https://cran.r-project.org/package=reader) handles certain text formats and R binary files
+* [**io**](https://cran.r-project.org/package=io) offers a set of custom formats
+* [**ImportExport**](https://cran.r-project.org/package=ImportExport) focuses on select binary formats (Excel, SPSS, and Access files) and provides a Shiny interface.
+* [**SchemaOnRead**](https://cran.r-project.org/package=SchemaOnRead) iterates through a large number of possible import methods until one works successfully

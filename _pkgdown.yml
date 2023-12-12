@@ -1,0 +1,16 @@
+url: 
+template:
+  bootstrap: 5
+  theme: github-light
+  bootswatch: cosmo
+  bslib:
+    pkgdown-nav-height: 100px
+    bg: "#ffffff"
+    fg: "black"
+    primary: "#347ded"
+    heading_font: {google: "Roboto Slab"}
+navbar:
+    bg: primary
+    structure:
+        left: [intro, articles, tutorials, reference, news]
+        right: [search, github]

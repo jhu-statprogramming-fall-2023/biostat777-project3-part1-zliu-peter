@@ -1,0 +1,312 @@
+---
+title: "Example analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Example analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE, warning=FALSE}
+library(rio)
+library(plotly)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(tidyr)
+library(here)
+library(stringr)
+library(forcats)
+library(tidytuesdayR)
+library(purrr)
+library(scales)
+library(tidytext)
+```
+
+This is an example analysis for the package **rio**, created for course biostats777-project 3, written by Zixing (Peter) Liu. The two functions used from **rio** package is import() and export().
+
+### Project Aims
+
+Horror movies has been a popular movie genre since its conception. There are many brilliant horror movies produced across the globe; however, for the sake of readability and accessibility, I will only focus on English language movies. In this exploratory analysis, I aim to investigate the following questions about popularity, budget and revenue, runtime, and associated genres that complement horror movies:
+
+1.  What is the popularity trends of horror movies over time?
+2.  What are the top 10 horror movies based on vote average and count?
+3.  Is there a correlation between a movie's budget and its revenue?
+4.  What are the most common genres combined with horror?
+
+The intended audience are those interested in horror movies dating back to the 1950s and the TA/Instructors for Biostats-777.
+
+### Data Source
+
+The data source is tidytuesday. [Click here for more details.](https://github.com/rfordatascience/tidytuesday/tree/master/data/2022/2022-11-01) The source dataset was extracted via [tmdb API] (<https://www.themoviedb.org/>) with R.
+
+There is one dataset, with details on worldwide horror movies since the 1950s. [Click here for the data dictionary.](https://github.com/rfordatascience/tidytuesday/tree/master/data/2022/2022-11-01#data-dictionary)
+
+### Loading Data
+
+Note: two functions from rio package were used here.
+
+```{r, message=FALSE}
+# Applying import and export function of the rio package (package that I am showing)
+# loading data
+data_dir <- "../data"
+if (!dir.exists(data_dir)) {
+    # Directory does not exist, so create it
+    dir.create(data_dir)
+}
+
+if (!file.exists(here("data", "horror_movies.csv"))) {
+    horror_movies <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-11-01/horror_movies.csv")
+    
+    # saving the csv to avoid repeated downloads
+    # applying rio::export function
+    rio::export(horror_movies, here("data", "horror_movies.csv"))
+}
+
+# applying rio::import function
+horror_movies = rio::import(here("data", "horror_movies.csv"))
+```
+
+### Data Cleaning
+
+Note: two functions from purrr package were used here.
+
+```{r}
+# Data cleaning and wrangling
+# Convert release_date to a Date object and extract the year
+movies <- horror_movies %>%
+    dplyr::mutate(release_year = year(lubridate::ymd(release_date)))
+# Separate the genre_names into individual genres
+movies %<>%
+    tidyr::separate_rows(genre_names, sep = ", ")
+
+# Select relevant columns and apply filter for english
+movies %<>%
+    dplyr::select(movie_id = id, title, genre_names, original_language, release_year, popularity, vote_average, vote_count, budget, revenue, runtime) %>%
+    dplyr::filter(original_language == "en")
+
+# 4. Handle missing values (change to 0) using purrr functions
+# two purrr functions used
+movies %<>%
+    dplyr::mutate(dplyr::across(c(budget, revenue, runtime), ~ purrr::map_dbl(.x, purrr::possibly(~ ifelse(is.na(.x), 0, .x), 0))))
+```
+
+### Question 1.
+
+**How did the popularity of horror movies change over the years?**
+
+```{r, fig.dim=c(8,7)}
+# Plot 1: Popularity Trend over Time
+popularity_trend <- movies %>%
+    dplyr::group_by(release_year) %>%
+    dplyr::summarise(avg_popularity = mean(popularity, na.rm = TRUE))
+
+popularity_trend %>%
+    ggplot(aes(x = release_year, y = avg_popularity)) +
+    geom_line() +
+    labs(title = "Popularity Trend of Horror Movies Over Time",
+         subtitle = "The popularity of horror movies went up sharply in recent years.",
+         x = "Time",
+         y = "Mean Popularity",
+         caption = "Based on only English Language Movies") +
+    theme_classic() +
+    theme(plot.title = element_text(size=19, face="bold"),
+          plot.subtitle = element_text(size=12),
+          plot.caption = element_text(size=9, face="bold"),
+          axis.title = element_text(size=14, face="bold"),
+          axis.text = element_text(size=9),
+          strip.text = element_text(size=8, face="bold", color="black"))
+```
+
+We see that clearly in recent years, the popularity went up dramatically. However, this could largely be biased by a lack of vote data from the data source. It seems unlikely that there was such a steep change in just a few years around 2020. Overall, excluding the potentially abnormal results around 2020, the popularity was fairly stable.
+
+### Question 2.
+
+**What are the top 10 horror movies based on vote average and count?**
+
+Note that since this might be subject to similar caveats as above that a lack of data might bias the results, we are filtering those with vote count at least 500.
+
+```{r, fig.dim=c(8.5,7)}
+# Plot 2: Top 10 Horror Movies by Vote
+top_movies <- movies %>%
+    dplyr::group_by(title) %>%
+    dplyr::summarise(vote_average=mean(vote_average),
+                     vote_count=mean(vote_count)) %>%
+    dplyr::filter(vote_count>=500) %>%
+    dplyr::arrange(desc(vote_average), desc(vote_count)) %>%
+    dplyr::slice_head(n = 10)
+
+top_movies %>%
+    ggplot(aes(x = forcats::fct_reorder(title, vote_average), y = vote_average)) +
+    geom_point(color = "steelblue", size=3) +
+    coord_flip() +
+    labs(title = "Top 10 Most Popular Horror Movies",
+         subtitle = "The Shining and Jaws tie for first place in popularity.",
+         x = "Movie Title",
+         y = "Vote Average (Popularity)",
+         caption = "Only those with at least 500 votes were included.") +
+    theme_bw() +
+    theme(plot.title = element_text(size=19, face="bold"),
+          plot.subtitle = element_text(size=12),
+          plot.caption = element_text(size=9, face="bold"),
+          axis.title = element_text(size=14, face="bold"),
+          axis.text = element_text(size=8))
+```
+
+We see some of the classic English language horror movies as the top 10, such as The Shining, Jaws, and Exorcist.
+
+We next shift our focus to budget and revenue. Do higher budget leads to higher revenue?
+
+### Question 3.
+
+**How is a movie's budget and its revenue related?**
+
+```{r, fig.dim=c(8,7), message=FALSE, warning=FALSE}
+# Plot 3: Budget vs Revenue
+set.seed(1249)
+highlight_titles <- top_movies$title
+
+# Indicate top 10 popular movies from above
+movies_Q3 <- movies %>%
+    dplyr::mutate(Popularity = ifelse(title %in% highlight_titles, "Top 10", "Others")) %>%
+    dplyr::arrange(desc(Popularity))
+
+# plotting
+budget_revenue_plot <- movies_Q3 %>%
+    ggplot(aes(x = budget, y = revenue)) +
+    geom_point(aes(fill=Popularity, color=Popularity, alpha=Popularity, text = paste("Title:", title, "<br>Budget:", budget, "<br>Revenue:", revenue)), pch=21, size=2) +
+    scale_y_log10() +
+    scale_x_log10() +
+    geom_smooth(method = "lm", se = FALSE, color = "black") +
+    labs(x = "Budget (in USD)", y = "Revenue (in USD)",
+         title = "Budget vs Revenue of Horror Movies", caption = "Log-scaled on both x and y.") +
+    theme_classic()+
+    theme(panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.text = element_text(size=12.5),
+          axis.text.x = element_text(size=16, color="black"),
+          axis.text.y = element_text(size=16, color="black"),
+          axis.title.x = element_text(size=18, color="black"),
+          axis.title.y = element_text(size=18, color="black"),
+          legend.background = element_rect(fill = "white", color = "white"),
+          legend.title = element_blank())
+
+budget_revenue_plot <- budget_revenue_plot +
+    scale_color_manual(values = c(`Top 10` = "red", "Others" = "lightblue")) +
+    scale_fill_manual(values = c(`Top 10` = "red", "Others" = "lightblue")) +
+    scale_alpha_manual(values = c(`Top 10` = 1, "Others" = 0.2))
+
+
+ggplotly(budget_revenue_plot, tooltip = "text") %>%
+    layout(annotations=list(x=0, y=1, text="Higher budget seems roughly correlated with higher revenue.", showarrow = F, xref='paper', yref='paper', xanchor="left", yanchor="auto")) %>%
+    layout(annotations=list(x=1,y=0, text="Caption: log10-scaled x, y axis.",
+      showarrow = F, xref='paper', yref='paper',
+      xanchor='right', yanchor='auto', xshift=0, yshift=0,
+      font=list(size=11, color="black")))
+```
+
+We can see that higher budget seems to be associated with higher revenue, though the exact relationship needs to be further investigated. We also see that the top 10 popular movies are those high in both production cost and revenue. This suggests that higher revenue might be correlated with higher popularity.
+
+**A quick plot of popularity vs. revenue:**
+
+```{r, fig.dim=c(8,8), message=FALSE, warning=FALSE}
+set.seed(1235)
+movies_Q3.1 <- movies_Q3 %>%
+    dplyr::filter(vote_count>=50)
+
+pop_revenue_plot <- movies_Q3.1 %>%
+    ggplot(aes(x = revenue, y = popularity)) +
+    geom_jitter(color="tomato", alpha=0.4) +
+    scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
+    scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
+    # geom_vline(xintercept=median(movies_Q3.1$revenue),lty=6,col="black",lwd=1) +
+    geom_hline(yintercept=median(movies_Q3.1$popularity),lty=6,col="black",lwd=1) +
+    geom_smooth(method = "lm", se = FALSE, color = "blue") +
+    labs(title = "Popularity vs Revenue of Horror Movies",
+         subtitle = "Popularity rises at higher revenue but only to some extent.",
+         x = "Revenue (in USD)",
+         y = "Popularity",
+         caption = "The dashed lines are median values.") +
+    theme_bw() +
+    theme(plot.title = element_text(size=19, face="bold"),
+          plot.subtitle = element_text(size=12),
+          plot.caption = element_text(size=9, face="bold"),
+          axis.title = element_text(size=14, face="bold"),
+          axis.text = element_text(size=12))
+
+pop_revenue_plot
+
+```
+
+As stated in the subtitle, revenue seems to drive up the popularity a bit, but the effect is limited. This is in line with expectation as the sales do not equate popularity.
+
+Lastly, just as an aside, let's explore what common genres usually go with horror movie (Besides the genre horror).
+
+### Question 4.
+
+**What are the most common genres combined with horror?**
+
+```{r, fig.dim=c(9,9), message=FALSE, warning=FALSE}
+# Plot 5: Common Genres with Horror
+genre_count <- movies %>%
+  dplyr::mutate(decades = case_when(
+    between(release_year, 1950, 1960) ~ "1950s",
+    between(release_year, 1960, 1970) ~ "1960s",
+    between(release_year, 1970, 1980) ~ "1970s",
+    between(release_year, 1980, 1990) ~ "1980s",
+    between(release_year, 1990, 2000) ~ "1990s",
+    between(release_year, 2000, 2010) ~ "2000s",
+    between(release_year, 2010, 2020) ~ "2010s",
+    release_year > 2020 ~ "2020s")) %>%
+    dplyr::group_by(decades, genre_names) %>%
+    dplyr::summarise(n=n()) %>%
+    dplyr::filter(genre_names != "Horror") %>%
+    dplyr::arrange(decades, desc(n)) %>%
+    dplyr::slice_head(n=5) %>%
+    dplyr::ungroup()
+
+genre_count %>%
+    ggplot(aes(x = tidytext::reorder_within(genre_names, n, decades), y = n)) +
+    geom_bar(stat = "identity", fill = "salmon") +
+    tidytext::scale_x_reordered() +
+    coord_flip() +
+    facet_wrap(~decades, scales = "free") +
+    labs(title = "Common Genres Combined with Horror",
+         subtitle = "Thriller leads in its association with horror genre.",
+         caption = "The 2020s only include data up to 2022.",
+         x = "Genre", y = "Count") +
+    theme_bw()
+```
+
+It is interesting that science fiction was the most common genre with horror in the 1950s, yet it has dropped slightly in its popularity over the years. We see a rise of the combination of comedy and thriller with horror in more recent years.
+
+### Summary
+
+In this example analysis, we explored the popularity trends of horror movies since the 1950s, looked at the relationship between budget, revenue, and popularity, and investigated the change in common genre associated with "horror" movies over the years.
+
+Note: all interpretations of plots are written below the graphs. Overall, we found that budget and revenue are potentially associated, in contrast to a much weaker relationship between revenue and popularity. This could be driven by low popularity of low-budget and low-revenue movies. Interestingly, we also observed the rise of genre like comedy that has become increasingly more associated with horror genre, besides the "science fiction" genre (expected to be associated with "horror" genre).
+
+### List of Function Used
+
+**rio:** import, export (to demonstrate the package)
+
+**purrr:** map_dbl, possibly
+
+**facet_wrap**: in the last plot: Common Genres with Horror
+
+**dplyr:** filter, select, mutate, arrange, slice_head, group_by, summarise, ungroup
+
+**lubridate:** ymd
+
+**tidyr:** separate_rows
+
+**forcats:** fct_reorder
+
+**geom\_():** geom_bar, geom_point, geom_smooth, geom_jitter, geom_hline, geom_line
