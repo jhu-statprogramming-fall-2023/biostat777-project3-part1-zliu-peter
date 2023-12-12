@@ -31,13 +31,13 @@ By making import and export easy, it's an obvious next step to also use R as a s
 install_formats()
 ```
 
-The full list of supported formats is below:
+The full list of supported formats is below: (not shown)
 
 ```{r, include = FALSE}
 suppressPackageStartupMessages(library(data.table))
 ```
 
-```{r featuretable, echo = FALSE}
+```{r featuretable, echo = FALSE, eval=FALSE}
 rf <- data.table(rio:::rio_formats)[!input %in% c(",", ";", "|", "\\t") & type %in% c("import", "suggest", "archive"),]
 short_rf <- rf[, paste(input, collapse = " / "), by = format_name]
 type_rf <- unique(rf[,c("format_name", "type", "import_function", "export_function", "note")])
