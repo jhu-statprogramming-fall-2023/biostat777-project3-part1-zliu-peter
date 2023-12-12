@@ -12,7 +12,7 @@
 -   Url to the deployed website:
     <https://jhu-statprogramming-fall-2023.github.io/biostat777-project3-part1-zliu-peter>
 
--   Url to the deployed website github repo:
+-   Url to the deployed website github repo (gh-pages branch):
     <https://github.com/jhu-statprogramming-fall-2023/biostat777-project3-part1-zliu-peter>
 
 -   Lists of things I customized for the website:
